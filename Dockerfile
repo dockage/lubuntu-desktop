@@ -2,7 +2,7 @@ FROM ubuntu:15.04
 MAINTAINER Mohammad Abdoli Rad <m.abdolirad@gmail.com>
 
 RUN apt-get update \
- && apt-get install -y supervisor logrotate git tightvncserver openssh-server \ 
+ && DEBIAN_FRONTEND=noninteractive apt-get install -y supervisor logrotate git tightvncserver openssh-server \ 
 	lubuntu-desktop lxterminal firefox \ 
  && rm -rf /var/lib/apt/lists/*
 
