@@ -2,14 +2,20 @@ FROM ubuntu:15.04
 MAINTAINER Mohammad Abdoli Rad <m.abdolirad@gmail.com>
 
 RUN apt-get update \
- && DEBCONF_FRONTEND=noninteractive apt-get install -y lxterminal lubuntu-desktop firefox tightvncserver \ 
+ && apt-get install -y supervisor logrotate git tightvncserver openssh-server \ 
+	lubuntu-desktop lxterminal firefox \ 
  && rm -rf /var/lib/apt/lists/*
 
-# Add & config rasa user
-RUN echo "rasa ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers \
- && useradd --create-home --user-group -s /usr/bin/zsh rasa \
- && echo "rasa:rasa"|chpasswd \
- && sudo -u rasa -H sh -c "export SHELL=/usr/bin/zsh; curl -L http://install.ohmyz.sh | bash" \
- && sudo -u rasa -H sh -c "sed -i 's/ZSH_THEME=\".*\"/ZSH_THEME=\"maran\"/g' /home/rasa/.zshrc"
+COPY assets/install /opt/install
+RUN chmod 755 /opt/install
+RUN /opt/install
 
-EXPOSE 5901
+COPY assets/init /opt/init
+RUN chmod 755 /opt/init
+
+VOLUME ["/home/vnc/data"]
+
+ENTRYPOINT ["/opt/init"]
+CMD ["start"]
+
+EXPOSE 22 5901

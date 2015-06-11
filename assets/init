@@ -1,0 +1,53 @@
+#!/bin/bash
+set -e
+
+USER_LOGIN="vnc"
+USER_PASSWORD="${USER_PASSWORD:-vncpass}"
+USER_HOME="/home/${USER_LOGIN}"
+USER_DATA_DIR="${USER_HOME}/data"
+VNC_LOG_DIR="/var/log/vnc"
+
+appInit () {
+  echo 'Init ...'
+  echo "${USER_LOGIN}:${USER_PASSWORD}"|chpasswd
+}
+
+appStart () {
+  appInit
+  sudo -u ${USER_LOGIN} -H sh -c "vncserver :1 -geometry 1280x800 -depth 24 && tail -F ${USER_HOME}/.vnc/*.log"
+}
+
+appHelp () {
+  echo "Available options:"
+  echo " start          - Starts the gitlab server (default)"
+  echo " init           - Initialize the ubuntu desktop but don't start it."
+  echo " help           - Displays the help"
+  echo " [command]      - Execute the specified linux command eg. bash."
+}
+
+case "$1" in
+  start)
+    appStart
+    ;;
+  init)
+    appInit
+    ;;
+  help)
+    appHelp
+    ;;
+  *)
+    if [ -x $1 ]; then
+      $1
+    else
+      prog=$(which $1)
+      if [ -n "${prog}" ] ; then
+        shift 1
+        $prog $@
+      else
+        appHelp
+      fi
+    fi
+    ;;
+esac
+
+exit 0

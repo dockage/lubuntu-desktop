@@ -1,0 +1,10 @@
+#!/bin/bash
+set -e
+
+USER_LOGIN="vnc"
+USER_HOME="/home/${USER_LOGIN}"
+
+echo "${USER_LOGIN} ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
+useradd --create-home --user-group -s /usr/bin/zsh ${USER_LOGIN}
+sudo -u ${USER_LOGIN} -H sh -c "export SHELL=/usr/bin/zsh; curl -L http://install.ohmyz.sh | bash"
+sudo -u ${USER_LOGIN} -H sh -c "sed -i 's/ZSH_THEME=\".*\"/ZSH_THEME=\"maran\"/g' ${USER_HOME}/.zshrc"
