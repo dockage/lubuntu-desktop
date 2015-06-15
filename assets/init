@@ -5,16 +5,28 @@ USER_LOGIN="vnc"
 USER_PASSWORD="${USER_PASSWORD:-vncpass}"
 USER_HOME="/home/${USER_LOGIN}"
 USER_DATA_DIR="${USER_HOME}/data"
-VNC_LOG_DIR="/var/log/vnc"
+VNC_DISPLAY="1"
+VNC_DEPTH="24"
+VNC_GEOMETRY="1280x720"
+VNC_OPTIONS=${VNC_OPTIONS:-"-depth ${VNC_DEPTH} -geometry ${VNC_GEOMETRY} :${VNC_DISPLAY}"}
 
 appInit () {
   echo 'Init ...'
-  echo "${USER_LOGIN}:${USER_PASSWORD}"|chpasswd
+  echo "${USER_LOGIN}:${USER_PASSWORD}" | chpasswd
+  chown -R vnc:vnc ${USER_HOME}/share
+  su ${USER_LOGIN} -c "touch ${USER_HOME}/.Xresources"
+  su ${USER_LOGIN} -c "touch ${USER_HOME}/.Xauthority"
+  su ${USER_LOGIN} -c "mkdir -p ${USER_HOME}/.vnc"
+  su ${USER_LOGIN} -c "echo "${USER_PASSWORD}" | vncpasswd -f > ${USER_HOME}/.vnc/passwd"
+  su ${USER_LOGIN} -c "chmod 600 ${USER_HOME}/.vnc/passwd"
 }
 
 appStart () {
   appInit
-  sudo -u ${USER_LOGIN} -H sh -c "vncserver :1 -geometry 1280x800 -depth 24 && tail -F ${USER_HOME}/.vnc/*.log"
+
+  echo 'Start ...'
+  /etc/init.d/ssh start
+  su ${USER_LOGIN} -c "vncserver ${VNC_OPTIONS} && tail -F ${USER_HOME}/.vnc/*.log"
 }
 
 appHelp () {
@@ -36,7 +48,7 @@ case "$1" in
     appHelp
     ;;
   *)
-    if [ -x $1 ]; then
+    if [ -x $1 ]; then 
       $1
     else
       prog=$(which $1)
